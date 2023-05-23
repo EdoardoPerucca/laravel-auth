@@ -5,6 +5,9 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+use Illuminate\Support\Str;
 
 class ProjectController extends Controller
 {
@@ -26,7 +29,7 @@ class ProjectController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.projects.create');
     }
 
     /**
@@ -37,7 +40,18 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $formData = $request->all();
+
+        $this->validation($formData);
+
+        $project = new Project();
+
+        $project->fill($formData);
+        $project->slug = Str::slug($project->title, '-');
+
+        $project->save();
+
+        return redirect()->route('admin.projects.show', $project);
     }
 
     /**
@@ -59,7 +73,7 @@ class ProjectController extends Controller
      */
     public function edit(Project $project)
     {
-        //
+        return view('admin.projects.edit', compact('project'));
     }
 
     /**
@@ -71,7 +85,14 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
-        //
+        $formData = $request->all();
+
+        $this->validation($formData);
+
+        $project->slug = str::slug($formData['title'], '-');
+        $project->update($formData);
+
+        return redirect()->route('admin.projects.show', $project);
     }
 
     /**
@@ -82,6 +103,21 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project)
     {
-        //
+        $project->delete();
+
+        return redirect()->route('admin.projects.index');
+    }
+
+    private function validation($formData)
+    {
+        $validator = Validator::make($formData, [
+            'title' => 'required|max:255|min:3',
+            'content' => 'required'
+        ], [
+            'title.max' => 'Il titolo deve avere massimo :max caratteri',
+            'title.required' => 'Il titolo è richiesto',
+            'title.max' => 'Il titolo deve avere minimo :min caratteri',
+            'content.required' => 'Il post deve avere il contenuto',
+        ])->validate();
     }
 }

@@ -21,6 +21,12 @@ Route::get('/', function () {
 });
 
 
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+
+    Route::get('/', [DashboardController::class, 'home'])->name('home');
+
+    Route::resource('projects', ProjectController::class)->parameters(['projects' => 'project:slug']);
+});
 
 
 Route::middleware('auth')->group(function () {
@@ -29,12 +35,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
-
-    Route::resource('projects', ProjectController::class)->parameters(['projects' => 'project:slug']);
-
-    Route::get('/', [DashboardController::class, 'home'])->name('dashboard.home');
-});
 
 
 require __DIR__ . '/auth.php';
